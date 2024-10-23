@@ -87,7 +87,7 @@ cpu_temp() {
   local ID=*
   [ -f /etc/os-release  ] && source /etc/os-release
   case "$ID" in
-    "raspbian")
+    "debian") #cheat by making this work
       cpu=$(</sys/class/thermal/thermal_zone0/temp)
       echo "$((cpu/1000))" | _parseAndPrint
     ;;
@@ -431,7 +431,7 @@ ram_intensive_processes() {
 
   local psCommand=$(type -P ps)
 
-  result=$($psCommand axo pid,user,pmem,rss,vsz,comm --sort -pmem,-rss,-vsz \
+  result=$($psCommand axo pid,user,%mem,rss,vsz,comm --sort -%mem,-rss,-vsz \
         | $HEAD -n 15 \
         | $AWK 'NR>1 {print "{ \"pid\": " $1 \
                       ", \"user\": \"" $2 \

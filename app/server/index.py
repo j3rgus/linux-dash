@@ -2,10 +2,11 @@
 
 from __future__ import print_function
 import os
+import signal
 import sys
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer, test as _test
+from http.server import BaseHTTPRequestHandler, HTTPServer, test as _test
 import subprocess
-from SocketServer import ThreadingMixIn
+from socketserver import ThreadingMixIn
 import argparse
 
 
@@ -42,12 +43,18 @@ class MainHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', contentType)
             self.end_headers()
-            self.wfile.write(data)
+            self.wfile.write(data.encode() if isinstance(data, str) else data)
 
         except IOError:
             self.send_error(404, 'File Not Found: %s' % self.path)
 
+
+def handle_signal(_sig, _frame):
+    print("Stopping program")
+    exit(0)
+
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, handle_signal)
     args = parser.parse_args()
     server = ThreadedHTTPServer(('0.0.0.0', args.port), MainHandler)
     print('Starting server, use <Ctrl-C> to stop')
